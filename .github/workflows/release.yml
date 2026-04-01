@@ -1,0 +1,26 @@
+name: Desktop Builds
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+        python-version: ["3.11"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install desktop build dependencies
+        run: python -m pip install -U pip && python -m pip install -e ".[dashboard,desktop]"
+      - name: Build desktop bundle
+        run: python scripts/build_desktop.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-${{ matrix.os }}
+          path: dist/
