@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+dist/
+build/
+*.egg-info/
+
+# Editors / OS
+.DS_Store
+Thumbs.db
+
+# Workspace state and generated research artifacts
+inputs/transcripts/
+inputs/*.json
+data/
+exports/
+cache/
+logs/
+*.sqlite3
+*.db
+*.mp3
+*.mp4
+*.m4a
+*.zip
+
+# Virtual environments
+.venv/
+venv/
+

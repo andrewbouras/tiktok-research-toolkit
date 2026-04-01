@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Study Dashboard{% endblock %}
+{% block body_page %}dashboard{% endblock %}
+
+{% block content %}
+  <section class="panel compact-panel reveal">
+    <div class="compact-header">
+      <div>
+        <p class="eyebrow">Study overview</p>
+        <h1>{{ study_title }}</h1>
+      </div>
+      <div class="action-row">
+        {% if preferred_slug %}
+          <a class="button button-primary" href="{{ url_for('researcher_start', slug=preferred_slug) }}">Continue coding</a>
+        {% endif %}
+        <a class="button button-secondary" href="{{ url_for('export_all_csv') }}">Export data</a>
+      </div>
+    </div>
+
+    <div class="metric-grid">
+      <article class="metric-card">
+        <span class="metric-label">Completion</span>
+        <strong class="metric-value">{{ overall_progress }}%</strong>
+        <div class="progress-track"><span style="width: {{ overall_progress }}%"></span></div>
+      </article>
+      <article class="metric-card">
+        <span class="metric-label">Videos</span>
+        <strong class="metric-value">{{ total_videos }}</strong>
+        <span class="metric-meta">{{ total_researchers }} researchers</span>
+      </article>
+      <article class="metric-card">
+        <span class="metric-label">Completed</span>
+        <strong class="metric-value">{{ completed_count }}</strong>
+        <span class="metric-meta">{{ in_progress_count }} in progress</span>
+      </article>
+      <article class="metric-card">
+        <span class="metric-label">Flagged</span>
+        <strong class="metric-value">{{ flagged_count }}</strong>
+        <span class="metric-meta">
+          {% if avg_discern is not none %}
+            Average DISCERN {{ avg_discern }}
+          {% else %}
+            Waiting for completed ratings
+          {% endif %}
+        </span>
+      </article>
+    </div>
+  </section>
+
+  <section class="grid-two reveal">
+    <article class="panel">
+      <div class="panel-header">
+        <div>
+          <p class="eyebrow">Researchers</p>
+          <h2>Open a researcher workspace</h2>
+        </div>
+      </div>
+
+      <div class="physician-list">
+        {% for card in researcher_cards %}
+          <div class="physician-row">
+            <div class="physician-name">
+              <strong>{{ card.display_name }}</strong>
+              <span>{{ card.completed }}/{{ card.total }} complete</span>
+            </div>
+
+            <div class="physician-progress">
+              <div class="progress-track"><span style="width: {{ card.progress_pct }}%"></span></div>
+              <span>{{ card.progress_pct }}%</span>
+            </div>
+
+            <div class="physician-meta">
+              <span>{{ card.in_progress }} active</span>
+              <span>{{ card.flagged }} flagged</span>
+            </div>
+
+            <div class="physician-row-actions">
+              <a class="button button-secondary compact-button" href="{{ url_for('researcher_start', slug=card.slug) }}">Open</a>
+              {% if card.deletable %}
+                <form method="post" action="{{ url_for('delete_researcher', slug=card.slug) }}" onsubmit="return confirm('Delete this researcher and all saved coding progress for that researcher?');">
+                  <button class="button button-secondary compact-button button-danger" type="submit">Delete</button>
+                </form>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <form class="inline-form compact-form" method="post" action="{{ url_for('create_researcher') }}">
+        <label class="sr-only" for="display_name">Add researcher</label>
+        <input id="display_name" name="display_name" type="text" placeholder="Add researcher name" required>
+        <button class="button button-secondary compact-button" type="submit">Add</button>
+      </form>
+    </article>
+
+    <article class="panel">
+      <div class="panel-header">
+        <div>
+          <p class="eyebrow">Study status</p>
+          <h2>Quick summary</h2>
+        </div>
+      </div>
+
+      <div class="stack compact-stack">
+        {% for score, count in misinfo_counts.items() %}
+          <div class="distribution-row">
+            <span class="distribution-label">Score {{ score }}</span>
+            <div class="distribution-track">
+              {% set total = completed_count if completed_count else 1 %}
+              <span style="width: {{ (count / total) * 100 }}%"></span>
+            </div>
+            <strong>{{ count }}</strong>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="mini-divider"></div>
+
+      <div class="recent-list compact-stack">
+        {% if recent_activity %}
+          {% for item in recent_activity[:5] %}
+            <div class="recent-item">
+              <strong>{{ item.display_name }}</strong>
+              <span>{{ item.video_id }}</span>
+              <time>{{ item.updated_at|pretty_dt }}</time>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p class="empty-state">No activity yet.</p>
+        {% endif %}
+      </div>
+    </article>
+  </section>
+
+  <section class="panel compact-panel reveal support-panel">
+    <div class="compact-header">
+      <div>
+        <p class="eyebrow">Workspace</p>
+        <h2>Portable and export-friendly by default</h2>
+      </div>
+    </div>
+
+    <div class="support-grid">
+      <div class="support-copy">
+        <strong>This public toolkit is designed to be adopted by other labs without hidden machine-specific setup.</strong>
+        <span>Use the export links above to create analysis-ready CSV files and archive the study workspace for handoff or backup.</span>
+      </div>
+      <div class="button button-secondary compact-button">{{ workspace_root }}</div>
+    </div>
+  </section>
+{% endblock %}

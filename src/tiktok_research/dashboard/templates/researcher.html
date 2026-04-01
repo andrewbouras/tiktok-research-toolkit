@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title|default(researcher.display_name ~ ' Queue') }}{% endblock %}
+{% block body_page %}queue{% endblock %}
+
+{% block content %}
+  <section class="panel compact-panel reveal">
+    <div class="compact-header">
+      <div>
+        <p class="eyebrow">{{ queue_eyebrow|default('All videos') }}</p>
+        <h1>{{ researcher.display_name }}</h1>
+      </div>
+      <div class="action-row">
+        {% if resume_video %}
+          <a class="button button-primary" href="{{ resume_url|default(url_for('researcher_start', slug=researcher.slug)) }}">
+            {% if resume_label is defined %}
+              {{ resume_label }}
+            {% else %}
+              {% if resume_video.status == "in-progress" %}Resume assigned video{% else %}Open assigned video{% endif %}
+            {% endif %}
+          </a>
+        {% endif %}
+        {% if export_url is defined and export_url %}
+          <a class="button button-secondary" href="{{ export_url }}">{{ export_label|default('Export CSV') }}</a>
+        {% endif %}
+        {% if can_delete_researcher %}
+          <form method="post" action="{{ url_for('delete_researcher', slug=researcher.slug) }}" onsubmit="return confirm('Delete this researcher and all saved coding progress for that researcher?');">
+            <button class="button button-secondary button-danger" type="submit">Delete researcher</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="metric-grid">
+      <article class="metric-card">
+        <span class="metric-label">Completed</span>
+        <strong class="metric-value">{{ stats.completed }}</strong>
+        <span class="metric-meta">of {{ stats.total }}</span>
+      </article>
+      <article class="metric-card">
+        <span class="metric-label">Overall progress</span>
+        <strong class="metric-value">{{ stats.progress_pct }}%</strong>
+        <div class="progress-track"><span style="width: {{ stats.progress_pct }}%"></span></div>
+      </article>
+      <article class="metric-card">
+        <span class="metric-label">In progress</span>
+        <strong class="metric-value">{{ stats.in_progress }}</strong>
+        <span class="metric-meta">autosave enabled</span>
+      </article>
+      <article class="metric-card">
+        <span class="metric-label">Flagged</span>
+        <strong class="metric-value">{{ stats.flagged }}</strong>
+        <span class="metric-meta">{{ stats.latest_activity|pretty_dt }}</span>
+      </article>
+    </div>
+  </section>
+
+  <section class="panel reveal">
+    <div class="panel-header split-header">
+      <div>
+        <p class="eyebrow">Queue</p>
+        <h2>{{ queue_heading|default('All assigned videos') }}</h2>
+      </div>
+
+      <div class="queue-tools">
+        <input id="queue-search" type="search" placeholder="{{ search_placeholder|default('Search by video ID or creator handle') }}">
+        <div class="chip-row">
+          <button class="chip is-active" type="button" data-status-filter="all">All</button>
+          <button class="chip" type="button" data-status-filter="not-started">Not started</button>
+          <button class="chip" type="button" data-status-filter="in-progress">In progress</button>
+          <button class="chip" type="button" data-status-filter="complete">Complete</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="queue-grid" id="queue-grid">
+      {% for video in videos %}
+        <article
+          class="queue-card"
+          data-status="{{ video.status }}"
+          data-search="{{ (video.id ~ ' ' ~ (video.creator_handle or ''))|lower }}"
+        >
+          <div class="queue-card-top">
+            <div>
+              <span class="queue-id">{{ video.id }}</span>
+              <h3>{{ video.creator_handle or "Unknown creator" }}</h3>
+            </div>
+            <span class="status-badge status-{{ video.status }}">
+              {{ video.status.replace('-', ' ') }}
+            </span>
+          </div>
+
+          <p class="queue-description">
+            {% if video.description %}
+              {{ video.description[:180] }}{% if video.description|length > 180 %}...{% endif %}
+            {% else %}
+              No stored description in the source data.
+            {% endif %}
+          </p>
+
+          <div class="queue-meta">
+            <span>{{ video.views|compact_number }} views</span>
+            <span>{{ video.likes|compact_number }} likes</span>
+            <span>{{ video.post_date }}</span>
+          </div>
+
+          <div class="progress-track"><span style="width: {{ video.progress_pct }}%"></span></div>
+          <div class="queue-footer">
+            <span>{{ video.progress_pct }}% complete</span>
+            {% if video.flag_for_review %}
+              <span class="pill warning">Needs PI review</span>
+            {% endif %}
+          </div>
+
+          <a class="button button-primary full-width" href="{{ video.workspace_url|default(url_for('video_workspace', slug=researcher.slug, video_id=video.id)) }}">
+            {% if video.status == "not-started" %}
+              {{ queue_open_not_started_label|default('Open workspace') }}
+            {% elif video.status == "in-progress" %}
+              {{ queue_open_in_progress_label|default('Resume coding') }}
+            {% else %}
+              {{ queue_open_complete_label|default('Review / edit') }}
+            {% endif %}
+          </a>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}

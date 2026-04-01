@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>{% block title %}TikTok Research Dashboard{% endblock %}</title>
+    <script>
+      (function () {
+        const storageKey = "researchDashboardTheme";
+        let theme = "light";
+        try {
+          const storedTheme = window.localStorage.getItem(storageKey);
+          if (storedTheme === "light" || storedTheme === "dark") {
+            theme = storedTheme;
+          } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+            theme = "dark";
+          }
+        } catch (error) {
+          theme = "light";
+        }
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.style.colorScheme = theme;
+      })();
+    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body data-page="{% block body_page %}default{% endblock %}">
+    <div class="page-shell">
+      <header class="site-header">
+        <div class="site-header-row">
+          <a class="brand-mark" href="{{ url_for('dashboard') }}">
+            <span class="brand-kicker">{{ study_title }}</span>
+            <strong>Research Dashboard</strong>
+          </a>
+
+          <div class="header-actions">
+            <div class="theme-switcher" role="group" aria-label="Color theme">
+              <button class="theme-option" data-theme-option="light" type="button" aria-pressed="false">
+                Light
+              </button>
+              <button class="theme-option" data-theme-option="dark" type="button" aria-pressed="false">
+                Dark
+              </button>
+            </div>
+
+            <a class="header-link" href="{{ url_for('export_all_csv') }}">Export all CSV</a>
+          </div>
+        </div>
+
+        {% if nav_researchers %}
+          <nav class="tab-bar" aria-label="Researcher workspaces">
+            <a class="tab-link {% if nav_active_page == 'overview' %}is-active{% endif %}" href="{{ url_for('dashboard') }}">
+              Overview
+            </a>
+            <a class="tab-link {% if nav_active_page == 'calibration' %}is-active{% endif %}" href="{{ url_for('calibration_dashboard') }}">
+              Calibration
+            </a>
+            {% for researcher in nav_researchers %}
+              <a
+                class="tab-link {% if nav_active_page != 'calibration' and nav_active_slug == researcher.slug %}is-active{% endif %}"
+                href="{{ url_for('researcher_start', slug=researcher.slug) }}"
+              >
+                {{ researcher.display_name }}
+              </a>
+            {% endfor %}
+          </nav>
+        {% endif %}
+      </header>
+
+      <main class="site-main">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

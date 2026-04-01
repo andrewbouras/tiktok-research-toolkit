@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tiktok-research-toolkit"
+version = "0.1.0"
+description = "Open-source toolkit for coding and auditing short-form health video studies."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [
+  {name = "TikTok Research Toolkit contributors"},
+]
+dependencies = [
+  "openpyxl==3.1.5",
+  "PyYAML==6.0",
+  "requests==2.32.5",
+]
+
+[project.optional-dependencies]
+core = []
+dashboard = ["Flask==3.0.3"]
+collect = []
+transcribe = []
+llm = []
+dev = [
+  "build>=1.2,<2",
+  "pytest==7.3.1",
+]
+desktop = [
+  "pyinstaller>=6,<7",
+]
+
+[project.scripts]
+tiktok-research = "tiktok_research.cli:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.package-dir]
+"" = "src"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+tiktok_research = [
+  "dashboard/templates/*.html",
+  "dashboard/static/*.css",
+  "dashboard/static/*.js",
+]

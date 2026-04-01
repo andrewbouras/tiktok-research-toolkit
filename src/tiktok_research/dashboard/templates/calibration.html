@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Calibration Dashboard{% endblock %}
+{% block body_page %}calibration{% endblock %}
+
+{% block content %}
+  <section class="panel compact-panel reveal">
+    <div class="compact-header">
+      <div>
+        <p class="eyebrow">Calibration</p>
+        <h1>Shared calibration set</h1>
+        <p class="panel-copy">These 10 videos are separate from the 200-video study sample, so calibration scores will not overlap with the real coding set.</p>
+      </div>
+      <div class="action-row">
+        {% if preferred_slug %}
+          <a class="button button-primary" href="{{ url_for('calibration_start', slug=preferred_slug) }}">Continue calibration</a>
+        {% endif %}
+        <a class="button button-secondary" href="{{ url_for('export_calibration_all_csv') }}">Export calibration CSV</a>
+      </div>
+    </div>
+
+    <div class="metric-grid">
+      <article class="metric-card">
+        <span class="metric-label">Completion</span>
+        <strong class="metric-value">{{ overall_progress }}%</strong>
+        <div class="progress-track"><span style="width: {{ overall_progress }}%"></span></div>
+      </article>
+      <article class="metric-card">
+        <span class="metric-label">Calibration videos</span>
+        <strong class="metric-value">{{ total_videos }}</strong>
+        <span class="metric-meta">{{ total_researchers }} coders</span>
+      </article>
+      <article class="metric-card">
+        <span class="metric-label">Completed ratings</span>
+        <strong class="metric-value">{{ completed_count }}</strong>
+        <span class="metric-meta">{{ in_progress_count }} in progress</span>
+      </article>
+      <article class="metric-card">
+        <span class="metric-label">Needs discussion</span>
+        <strong class="metric-value">{{ videos_needing_discussion }}</strong>
+        <span class="metric-meta">Misinfo mismatch or DISCERN spread ≥ 5</span>
+      </article>
+    </div>
+  </section>
+
+  <section class="grid-two reveal">
+    <article class="panel">
+      <div class="panel-header">
+        <div>
+          <p class="eyebrow">Coders</p>
+          <h2>Open each calibration workspace</h2>
+        </div>
+      </div>
+
+      <div class="physician-list">
+        {% for card in researcher_cards %}
+          <div class="physician-row">
+            <div class="physician-name">
+              <strong>{{ card.display_name }}</strong>
+              <span>{{ card.completed }}/{{ card.total }} complete</span>
+            </div>
+
+            <div class="physician-progress">
+              <div class="progress-track"><span style="width: {{ card.progress_pct }}%"></span></div>
+              <span>{{ card.progress_pct }}%</span>
+            </div>
+
+            <div class="physician-meta">
+              <span>{{ card.in_progress }} active</span>
+              <span>{{ card.flagged }} flagged</span>
+            </div>
+
+            <div class="physician-row-actions">
+              <a class="button button-secondary compact-button" href="{{ url_for('calibration_start', slug=card.slug) }}">Open</a>
+              <a class="button button-secondary compact-button" href="{{ url_for('calibration_queue', slug=card.slug) }}">All 10</a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </article>
+
+    <article class="panel">
+      <div class="panel-header">
+        <div>
+          <p class="eyebrow">How To Use It</p>
+          <h2>Recommended group flow</h2>
+        </div>
+      </div>
+
+      <ol class="workflow-list">
+        <li>Each coder completes the same 10 calibration videos independently.</li>
+        <li>Come back here and scan for videos marked <strong>Needs discussion</strong>.</li>
+        <li>Review the mismatched scores together, align the rubric, then begin the main 200-video sample.</li>
+      </ol>
+    </article>
+  </section>
+
+  <section class="panel reveal">
+    <div class="panel-header">
+      <div>
+        <p class="eyebrow">Compare scores</p>
+        <h2>Calibration differences at a glance</h2>
+      </div>
+    </div>
+
+    <div class="calibration-list">
+      {% for item in comparison_rows %}
+        <article class="queue-card calibration-card">
+          <div class="queue-card-top">
+            <div>
+              <span class="queue-id">{{ item.video.id }}</span>
+              <h3>{{ item.video.creator_handle or "Unknown creator" }}</h3>
+            </div>
+            <div class="chip-row">
+              <span class="pill soft">{{ item.completed_count }}/{{ item.total_coders }} complete</span>
+              {% if item.needs_discussion %}
+                <span class="pill warning">Needs discussion</span>
+              {% else %}
+                <span class="pill">Aligned so far</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <p class="queue-description">
+            {% if item.video.description %}
+              {{ item.video.description[:220] }}{% if item.video.description|length > 220 %}...{% endif %}
+            {% else %}
+              No stored description in the source data.
+            {% endif %}
+          </p>
+
+          <div class="calibration-meta-row">
+            <span>{{ item.video.views|compact_number }} views</span>
+            <span>Misinfo spread {{ item.misinfo_spread }}</span>
+            <span>DISCERN spread {{ item.discern_spread }}</span>
+          </div>
+
+          <div class="calibration-coder-grid">
+            {% for coder in item.coders %}
+              <div class="calibration-coder-row">
+                <div class="calibration-coder-name">
+                  <strong>{{ coder.display_name }}</strong>
+                  <span class="status-badge status-{{ coder.status }}">{{ coder.status.replace('-', ' ') }}</span>
+                </div>
+                <div class="calibration-score-pair">
+                  <span>Misinfo</span>
+                  <strong>{{ coder.misinfo_score or "—" }}</strong>
+                </div>
+                <div class="calibration-score-pair">
+                  <span>DISCERN</span>
+                  <strong>{{ coder.discern_total if coder.discern_total is not none else "—" }}</strong>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}
