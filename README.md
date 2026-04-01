@@ -79,6 +79,6 @@ Credentials are referenced by environment-variable name only. Secrets must never
 
 - [Quickstart](docs/quickstart.md)
 - [Hosted deployment](docs/hosted-deployment.md)
+- [Distribution and archival](docs/distribution.md)
 - [Publish checklist](docs/publish-checklist.md)
 - [Data policy](DATA_POLICY.md)
-

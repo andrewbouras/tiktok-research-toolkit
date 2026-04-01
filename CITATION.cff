@@ -2,9 +2,17 @@ cff-version: 1.2.0
 title: TikTok Research Toolkit
 message: "If you use this toolkit in a paper or methods appendix, please cite the repository."
 type: software
+version: 0.1.0
+date-released: 2026-04-01
 authors:
-  - family-names: Contributors
-    given-names: TikTok Research Toolkit
-repository-code: https://github.com/example/tiktok-research-toolkit
+  - family-names: Bouras
+    given-names: Andrew
+repository-code: https://github.com/andrewbouras/tiktok-research-toolkit
+url: https://github.com/andrewbouras/tiktok-research-toolkit
+keywords:
+  - TikTok
+  - health communication
+  - reproducible research
+  - dashboard
+  - social media
 license: MIT
-
